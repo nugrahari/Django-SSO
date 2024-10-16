@@ -2,6 +2,7 @@
 
 import redis
 from django.conf import settings
+from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import AuthenticationFailed
 
@@ -28,3 +29,19 @@ class IsAuthenticatedAndNotBlacklisted(IsAuthenticated):
                     return True
         
         return is_authenticated
+
+
+class CustomPBKDF2PasswordHasher(PBKDF2PasswordHasher):
+    """
+    Custom PBKDF2 Password Hasher that uses Django secret key for hashing.
+    """
+    def encode(self, password, salt, iterations=None):
+        secret_key = settings.SECRET_KEY
+        # Combine password with secret key for additional security
+        combined_password = f"{password}{secret_key}"
+        return super().encode(combined_password, salt, iterations)
+    
+    def verify(self, password, encoded):
+        secret_key = settings.SECRET_KEY
+        combined_password = f"{password}{secret_key}"
+        return super().verify(combined_password, encoded)

@@ -135,6 +135,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+PASSWORD_HASHERS = [
+    'apps.auths.libs.CustomPBKDF2PasswordHasher',  # Masukkan path ke hasher yang telah dibuat
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # Backup hasher
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
