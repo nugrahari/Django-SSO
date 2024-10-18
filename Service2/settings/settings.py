@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'apps.auths',
     'apps.users',
+    'apps.grpc',
 ]
 
 REST_FRAMEWORK = {
@@ -58,8 +59,9 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'SIGNING_KEY': 'your_secret_key_for_sso',
     'ALGORITHM': 'HS256',
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # Masa berlaku access token 1 jam
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7), 
+    # Masa berlaku access token 1 jam
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
 MIDDLEWARE = [
@@ -115,7 +117,13 @@ CACHES = {
 }
 
 # Blacklist token TTL (misal token di blacklist selama waktu token masih valid)
-BLACKLIST_TOKEN_TTL = 60 * 60 * 24  # 1 day in seconds (sesuaikan dengan kebutuhan)
+# 1 day in seconds (sesuaikan dengan kebutuhan)
+BLACKLIST_TOKEN_TTL = 60 * 60 * 24
+
+# gRPC server settings
+GRPC_SERVER_HOST = 'localhost'
+GRPC_SERVER_PORT = '50051'
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -136,7 +144,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 PASSWORD_HASHERS = [
-    'apps.auths.libs.CustomPBKDF2PasswordHasher',  # Masukkan path ke hasher yang telah dibuat
+    # Masukkan path ke hasher yang telah dibuat
+    'apps.auths.libs.CustomPBKDF2PasswordHasher',
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # Backup hasher
 ]
 
