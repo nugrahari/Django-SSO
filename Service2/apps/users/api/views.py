@@ -13,7 +13,7 @@ def root_view(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticatedAndNotBlacklisted])
+# @permission_classes([IsAuthenticatedAndNotBlacklisted])
 def user_list(request):
     users = get_users()
     user_data = [

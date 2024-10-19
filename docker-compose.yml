@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: django_svc1
     restart: always
-    command: gunicorn settings.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    command: python run.py
     expose:
       - "8000"
     ports: # Tambahkan port untuk grpc jika diperlukan
@@ -19,35 +19,37 @@ services:
     networks:
       - backend_dev
 
-  grpc:
-    build: # Menggunakan build yang sama seperti service django
-      context: $PWD/Service1/.
-      dockerfile: Dockerfile
-    container_name: grpc_server
-    restart: always
-    command: python manage.py run_grpc_server
-    expose:
-      - "50051"
-    ports: # Tambahkan port untuk grpc jika diperlukan
-      - "50051:50051"
-    depends_on:
-      - django_svc1
-    networks:
-      - backend_dev
-
   django_svc2:
     build:
       context: $PWD/Service2/.
       dockerfile: Dockerfile
     container_name: django_svc2
     restart: always
-    command: gunicorn settings.wsgi:application --bind 0.0.0.0:8001 --workers 3
+    command: python run.py
     expose:
       - "8001"
     ports: # Tambahkan port untuk grpc jika diperlukan
       - "8001:8001"
     volumes:
       - $PWD/Service2:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=settings.settings
+    networks:
+      - backend_dev
+
+  django_svc3:
+    build:
+      context: $PWD/Service3/.
+      dockerfile: Dockerfile
+    container_name: django_svc3
+    restart: always
+    command: python run.py
+    expose:
+      - "8002"
+    ports: # Tambahkan port untuk grpc jika diperlukan
+      - "8002:8002"
+    volumes:
+      - $PWD/Service3:/app
     environment:
       - DJANGO_SETTINGS_MODULE=settings.settings
     networks:
@@ -67,6 +69,16 @@ services:
     depends_on:
       - django_svc1
       # - grpc
+    networks:
+      - backend_dev
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    command: ["redis-server", "--requirepass", "dev_password"] # Ganti dengan password yang diinginkan
+    ports:
+      - "6379:6379"
     networks:
       - backend_dev
 

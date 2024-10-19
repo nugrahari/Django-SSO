@@ -109,7 +109,7 @@ DATABASES = {
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://:dev_password@127.0.0.1:6379/1',  # Redis URL with password
+        'LOCATION': 'redis://:dev_password@redis:6379/1',  # Redis URL with password
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
