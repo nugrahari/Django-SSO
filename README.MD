@@ -237,7 +237,7 @@ Keamanan: PBKDF2 menggunakan salt untuk setiap password yang di-hash, sehingga d
 Daya Tahan terhadap Serangan Brute-force: PBKDF2 dapat diatur untuk melakukan banyak iterasi, yang membuat proses hashing lebih lambat dan memperlambat penyerang yang mencoba menebak password.
 Standar: PBKDF2 adalah standar yang direkomendasikan oleh NIST dan banyak digunakan di berbagai aplikasi.
 
-### - alternatif algoritma hashing dan kapan kita perlu menggantinya
+### - Alternatif algoritma hashing dan kapan kita perlu menggantinya
 
 Berikut adalah beberapa alternatif algoritma hashing yang umum digunakan untuk mengamankan password, beserta penjelasan singkat dan kapan sebaiknya kita mempertimbangkan untuk menggantinya:
 

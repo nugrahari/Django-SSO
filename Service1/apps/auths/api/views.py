@@ -10,6 +10,7 @@ import redis
 # Redis instance
 redis_instance = redis.StrictRedis.from_url(settings.CACHES['default']['LOCATION'])
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_view(request):
