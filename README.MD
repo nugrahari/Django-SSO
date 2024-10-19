@@ -10,6 +10,7 @@ Dokumen ini memberikan panduan tentang cara menjalankan aplikasi Django dengan N
 - [Konfigurasi Nginx](#konfigurasi-nginx)
 - [Koneksi ke Redis](#koneksi-ke-redis)
 - [Host dan Port yang Dapat Diakses](#host-dan-port-yang-dapat-diakses)
+- [Penjelasan](#penjelasan)
 
 ## Prasyarat
 
@@ -120,3 +121,140 @@ Setelah menjalankan aplikasi, Anda dapat mengakses layanan-layanan berikut:
 - Django Service 2: http://localhost:8001/
 - Django Service 3: http://localhost:8002/
 - Redis: redis://localhost:6379 dengan password dev_password
+
+## Penjelasan
+
+# Penjelasan Jawaban dari tiap Soal Take Home Test
+
+## 1: Django + gRPC Integration
+
+### - Struktur proyek
+
+Struktur project saya menempatkan semua app kedalam folder apps agar lebih rapih dan menempatkan config deployemnet ke dalam folder settings
+
+### - Mengintegrasikan gRPC dan Django
+
+Grpc server berada di Service1 dan bisa menggunakan command dibawah untuk running server
+
+```
+python manage.py run_grpc_server
+```
+
+### - Menangani server untuk gRPC dan REST API secara bersamaan
+
+Saya menanganinya menggunakan asynio di file run.py, root_directory Service1
+
+```
+cd Service1
+python run.py
+```
+
+### - Reverse proxy menggunakan Nginx
+
+[Konfigurasi Nginx](#konfigurasi-nginx)
+
+### - Efisiensi dan dokumentasi yang jelas
+
+Saya membuat semua service automatis menggunakan docker compose agar lebih efisien dan semoga readme file ini memudahkan saat running nya
+
+### - Test GRPC Client
+
+Untuk mencoba grpc sebagai client, dapat menggunakan api dari Service2, dengan endpoint ini : /v1/user/api/app1/
+
+## 2: Implementasi Single Sign-On (SSO)
+
+### - Implementasikan sistem SSO untuk ketiga aplikasi Django tersebut
+
+Ke 3 service diatas sudah mendukung SSO, sehingga token yang dihasilkan di Service 1 dapat digunakan untuk request API Service 2
+
+### - Sistem SSO harus mendukung JWT
+
+Sistem login token diatas sudah menggunakan JWT
+
+### - Gunakan secret key dari masing-masing aplikasi Django untuk memverifikasi JWT pada SSO.
+
+Aplikasi ini masih menggunakan secret key JWT Token yang sama
+
+### - Dukungan untuk logout global
+
+Sistem SSO diatas sudah mendukung global logout dengan menggunakan redis untuk menyimpan token yang sudah logout agar ter blacklist sehingga tidak dapat digunakan lagi
+
+### - Penjelasan Singkat
+
+Redis lebih efisien dalam menyimpan data sementara, dan kenapa token yang disimpan adalah yang tidak valid, bukan yang valid, itu dilakukan untuk menhindari penumpukan user login di redis dan mengurangi resiko down
+
+## 3: Custom Password Hashing with Unified Secret Key
+
+### - Implementasi dari CustomPBKDF2PasswordHasher
+
+implementasi dapat di lihat di file berikut
+
+```
+~/user1$ cat Service1/apps/auths/libs.py line 34
+
+class CustomPBKDF2PasswordHasher(PBKDF2PasswordHasher):
+    def encode(self, password, salt, iterations=None):
+        secret_key = settings.SECRET_KEY
+        # Combine password with secret key for additional security
+        combined_password = f"{password}{secret_key}"
+        return super().encode(combined_password, salt, iterations)
+
+    def verify(self, password, encoded):
+        secret_key = settings.SECRET_KEY
+        combined_password = f"{password}{secret_key}"
+        return super().verify(combined_password, encoded)
+```
+
+CustomPBKDF2PasswordHasher diatas sudah menggunakan dari masing masing secret key django,
+
+### - Fungsi validasi password
+
+contoh fungsi validasi passoword
+
+```
+def validate_password(password, encoded_password):
+    hasher = CustomPBKDF2PasswordHasher()
+    return hasher.verify(password, encoded_password)
+```
+
+Fungsi validasi diatas automatis digunakan oleh django, sesuai settings berikut.
+
+```
+~/user1$ cat Service1/settings/settings.py line 145
+
+PASSWORD_HASHERS = [
+    # Masukkan path ke hasher yang telah dibuat
+    'apps.auths.libs.CustomPBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # Backup hasher
+]
+```
+
+### - Penjelasan tentang keamanan hash password
+
+PBKDF2 (Password-Based Key Derivation Function 2) adalah algoritma hashing yang aman dan telah terbukti efektif dalam melindungi password. Berikut adalah alasan penggunaannya:
+
+Keamanan: PBKDF2 menggunakan salt untuk setiap password yang di-hash, sehingga dua password identik akan menghasilkan hash yang berbeda.
+Daya Tahan terhadap Serangan Brute-force: PBKDF2 dapat diatur untuk melakukan banyak iterasi, yang membuat proses hashing lebih lambat dan memperlambat penyerang yang mencoba menebak password.
+Standar: PBKDF2 adalah standar yang direkomendasikan oleh NIST dan banyak digunakan di berbagai aplikasi.
+
+### - alternatif algoritma hashing dan kapan kita perlu menggantinya
+
+Berikut adalah beberapa alternatif algoritma hashing yang umum digunakan untuk mengamankan password, beserta penjelasan singkat dan kapan sebaiknya kita mempertimbangkan untuk menggantinya:
+
+1. Bcrypt,
+   Bcrypt adalah algoritma hashing yang dirancang khusus untuk menyimpan password. Ia menggunakan salt dan dapat diatur untuk mengubah tingkat kesulitan hashing (cost factor).
+   Kapan Mengganti: Jika aplikasi Anda mulai mengalami serangan brute-force yang efektif atau jika terdapat algoritma hashing yang lebih kuat atau lebih efisien yang muncul, pertimbangkan untuk beralih ke bcrypt atau menyesuaikan cost factor.
+2. Scrypt,
+   Scrypt adalah algoritma hashing yang lebih baru yang dirancang untuk tahan terhadap serangan berbasis hardware. Ia membutuhkan memori yang signifikan untuk melakukan hashing, sehingga lebih sulit untuk menjalankan serangan brute-force dengan ASIC.
+   Kapan Mengganti: Jika Anda memerlukan perlindungan tambahan terhadap serangan berbasis hardware dan kinerja aplikasi Anda memadai untuk menggunakan algoritma yang lebih berat.
+3. Argon2,
+   Argon2 adalah pemenang Password Hashing Competition dan dirancang untuk keamanan yang lebih baik dengan menggabungkan penggunaan CPU dan memori. Ini juga memungkinkan penyesuaian untuk memori dan waktu hashing.
+   Kapan Mengganti: Jika Anda ingin menggunakan algoritma yang paling modern dan aman, atau jika kebijakan keamanan organisasi Anda memperbarui standar hashing password.
+   Kapan Perlu Mengganti Algoritma Hashing?
+   Anda sebaiknya mempertimbangkan untuk mengganti algoritma hashing password jika:
+
+Algoritma Usang: Algoritma hashing yang Anda gunakan sudah dianggap tidak aman atau sudah terbukti rentan terhadap serangan (misalnya, MD5 dan SHA-1).
+Kinerja Terpengaruh: Aplikasi Anda mengalami penurunan performa akibat serangan brute-force, dan algoritma baru dapat memberikan perlindungan lebih baik dengan kinerja yang masih dapat diterima.
+Regulasi Keamanan: Kebijakan atau regulasi baru di organisasi Anda memerlukan penggunaan algoritma hashing yang lebih kuat atau terbaru.
+Kemunculan Teknik Serangan Baru: Jika ada laporan tentang teknik baru yang mengancam keamanan algoritma hashing yang sedang digunakan.
+Mengganti algoritma hashing bukanlah langkah yang sepele; Anda perlu merencanakan dengan hati-hati untuk menghindari masalah seperti kehilangan akses pengguna yang ada. Idealnya, Anda harus memiliki proses migrasi untuk memperbarui password yang di-hash saat pengguna masuk berikutnya.
