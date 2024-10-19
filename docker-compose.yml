@@ -11,8 +11,10 @@ services:
       sh -c "python manage.py collectstatic --noinput && python run.py"
     expose:
       - "8000"
+      - "50051"
     ports: # Tambahkan port untuk grpc jika diperlukan
       - "8000:8000"
+      - "50051:50051"
     volumes:
       - $PWD/Service1:/app
     environment:
