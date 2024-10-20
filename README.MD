@@ -7,6 +7,7 @@ Dokumen ini memberikan panduan tentang cara menjalankan aplikasi Django dengan N
 - [Prasyarat](#prasyarat)
 - [Instalasi dan Persiapan](#instalasi-dan-persiapan)
 - [Menjalankan Aplikasi](#menjalankan-aplikasi)
+- [Menjalankan Unit Test](#menjalankan-unit-test)
 - [Konfigurasi Nginx](#konfigurasi-nginx)
 - [Koneksi ke Redis](#koneksi-ke-redis)
 - [Host dan Port yang Dapat Diakses](#host-dan-port-yang-dapat-diakses)
@@ -18,6 +19,7 @@ Sebelum menjalankan aplikasi, pastikan Anda telah menginstal perangkat lunak ber
 
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
+- [Py-Poetry](https://python-poetry.org/docs/)
 
 ## Instalasi dan Persiapan
 
@@ -25,6 +27,7 @@ Sebelum menjalankan aplikasi, pastikan Anda telah menginstal perangkat lunak ber
    ```bash
    git clone https://github.com/nugrahari/Django-SSO.git
    cd Django-SSO
+   poetry install
    ```
 2. Pastikan semua dependensi Python yang diperlukan telah didefinisikan dalam file requirements.txt di masing-masing direktori Service1, Service2, dan Service3. Contoh requirements.txt untuk Django:
    ```plaintext
@@ -46,6 +49,15 @@ docker-compose up --build
 ```
 
 Perintah ini akan membangun dan memulai semua layanan yang terdaftar dalam docker-compose.yml. Setelah semua layanan berjalan, Anda dapat mengakses aplikasi melalui browser atau alat pengujian API.
+
+## Menjalankan Unit Test
+
+Untuk menjalankan auto unit test, dapat dilakukan menggunakan perintah berikut:
+
+```bash
+cd Service1
+pytest --cov=. --cov-report=html
+```
 
 ## Konfigurasi Nginx
 

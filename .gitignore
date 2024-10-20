@@ -4,3 +4,5 @@ poetry.lock
 .DS_Store
 .vscode
 staticfiles
+.coverage
+htmlcov
