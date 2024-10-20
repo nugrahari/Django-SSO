@@ -60,9 +60,18 @@ REST_FRAMEWORK = {
     )
 }
 
+PRIVATE_KEY_PATH = os.path.join(BASE_DIR, "settings/pemkey/id_rsa")
+with open(PRIVATE_KEY_PATH, 'r') as f:
+    JWT_PRIVATE_KEY = f.read()
+
+PUBLIC_KEY_PATH = os.path.join(BASE_DIR, "settings/pemkey/id_rsa.pub")
+with open(PUBLIC_KEY_PATH, 'r') as f:
+    JWT_PUBLIC_KEY = f.read()
+
 SIMPLE_JWT = {
-    'SIGNING_KEY': 'your_secret_key_for_sso',
-    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': JWT_PRIVATE_KEY,  # Set to the secret key of the service
+    'VERIFYING_KEY': JWT_PUBLIC_KEY,
+    'ALGORITHM': 'RS256',
     # Masa berlaku access token 1 jam
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
